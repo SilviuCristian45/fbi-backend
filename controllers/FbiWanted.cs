@@ -47,15 +47,15 @@ public class FbiWanted : ControllerBase {
         return Ok(ApiResponse<WantedPersonDetailResponse>.Success(person.Data));
     }
 
-    [HttpPost("{personId}")]
+    [HttpPost("{personId}/{save}")]
     [Authorize(Roles = nameof(Role.USER))]
-    public async Task< ActionResult<ApiResponse<SaveFavouritePerson>>> saveFavouritePerson(int personId) {
+    public async Task<ActionResult<ApiResponse<SaveFavouritePerson>>> saveFavouritePerson(int personId, bool save) {
          var keycloakId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
          if (string.IsNullOrEmpty(keycloakId))
          {
             return Unauthorized(ApiResponse<SaveFavouritePerson>.Error("Utilizatorul nu a putut fi identificat."));
          }
-         var result = await _service.SavePersonToFavourite(personId, keycloakId);
+         var result = await _service.SavePersonToFavourite(personId, keycloakId, save);
          if (result.Success == false)
          {
             return NotFound(ApiResponse<SaveFavouritePerson>.Error(result.ErrorMessage));

@@ -16,9 +16,15 @@ public class WantedPersonsService : IWantedPersonsService
         _context = context;
     }
 
-    public async Task< ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId, string keycloakId) {
+    public async Task<ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId, string keycloakId, bool save) {
         try {
-            _context.SaveWantedPersons.Add(new SaveWantedPerson { UserId = keycloakId, WantedPersonId = personId } );
+            if (save) {
+                _context.SaveWantedPersons.Add(new SaveWantedPerson { UserId = keycloakId, WantedPersonId = personId } );
+            } else {
+                await _context.SaveWantedPersons
+                .Where(x => x.UserId == keycloakId && x.WantedPersonId == personId)
+                .ExecuteDeleteAsync();
+            }
             await _context.SaveChangesAsync();
             return new SaveFavouritePerson(true);
         } catch (Exception e) {

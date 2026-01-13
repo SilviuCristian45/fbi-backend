@@ -9,5 +9,5 @@ public interface IWantedPersonsService
     Task<ServiceResult<PaginatedResponse<WantedPersonSummaryResponse>>> GetAllAsync(PaginatedQueryDto paginatedQueryDto);
     Task<ServiceResult<WantedPersonDetailResponse?>> GetByIdAsync(int id);
 
-    Task<ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId, string keycloakId);
+    Task<ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId, string keycloakId, bool save);
 }
