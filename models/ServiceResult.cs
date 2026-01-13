@@ -20,7 +20,6 @@ public class ServiceResult<T>
         };
     }
 
-    // Metoda de eșec (Factory Method)
     public static ServiceResult<T> Fail(string message)
     {
         return new ServiceResult<T> 
@@ -30,4 +29,24 @@ public class ServiceResult<T>
             ErrorMessage = message 
         };
     }
+
+    public static implicit operator ServiceResult<T>(T data)
+    {
+        return Ok(data);
+    }
+
+    public static implicit operator ServiceResult<T>(ServiceError error)
+    {
+        return Fail(error.Message);
+    }
 }
+
+public static class ServiceResult
+{
+    public static ServiceResult<T> Ok<T>(T data) => ServiceResult<T>.Ok(data);
+    
+    // Un helper pentru fail când vrei să fii explicit
+    public static ServiceResult<T> Fail<T>(string message) => ServiceResult<T>.Fail(message);
+}
+
+public record ServiceError(string Message);

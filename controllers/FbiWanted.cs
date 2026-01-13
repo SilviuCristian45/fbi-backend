@@ -18,27 +18,30 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpGet]
+    [Authorize(Roles = nameof(Role.USER))]
     public async Task<ActionResult<ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>>> GetAll(
         [FromQuery] PaginatedQueryDto paginatedQueryDto
     )
     {
         var result = await _service.GetAllAsync(paginatedQueryDto);
-        if (result.Success == false) {
+        if (result.Success == false) 
+        {
             return BadRequest(ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>.Error(result.ErrorMessage));
         }
         return Ok(ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>.Success(result.Data));
     }
 
     [HttpGet("{id}")]
-    public async Task< ActionResult<ApiResponse<WantedPersonSummaryResponse>>> GetById(int id)
+     [Authorize(Roles = nameof(Role.USER))]
+    public async Task< ActionResult<ApiResponse<WantedPersonDetailResponse>>> GetById(int id)
     {
         var person = await _service.GetByIdAsync(id);
 
         if (person.Success == false)
         {
-            return NotFound(ApiResponse<WantedPersonSummaryResponse>.Error(person.ErrorMessage));
+            return NotFound(ApiResponse<WantedPersonDetailResponse>.Error(person.ErrorMessage));
         }
 
-        return Ok(ApiResponse<WantedPersonSummaryResponse>.Success(person.Data));
+        return Ok(ApiResponse<WantedPersonDetailResponse>.Success(person.Data));
     }
 }

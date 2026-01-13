@@ -43,29 +43,29 @@ public class WantedPersonsService : IWantedPersonsService
             .OrderByDescending(p => p.PublicationDate)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(); 
 
         var dtos = items.Select(p => p.ToSummaryDto()).ToList();
 
-        return ServiceResult<PaginatedResponse<WantedPersonSummaryResponse>>.Ok( new PaginatedResponse<WantedPersonSummaryResponse>(totalItems, dtos) );
+        return new PaginatedResponse<WantedPersonSummaryResponse>(totalItems, dtos);
     }
 
-    public async Task<ServiceResult<WantedPersonSummaryResponse>> GetByIdAsync(int id)
+   public async Task<ServiceResult<WantedPersonDetailResponse>> GetByIdAsync(int id)
     {
         var person = await _context.WantedPersons
-        .Include(p => p.Images)
-        .Include(p => p.Aliases)
-        .Include(p => p.Files)
-        .Include(p => p.Subjects)
-        .AsNoTracking()
-        .FirstOrDefaultAsync(p => p.Id == id);
+           .Include(p => p.Images)
+            .Include(p => p.Aliases)
+            .Include(p => p.Files)
+            .Include(p => p.Subjects)
+            // 2. Optimizare (Doar citim, nu modificăm)
+            .AsNoTracking() 
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         if (person == null)
         {
-            return ServiceResult<WantedPersonSummaryResponse>.Fail($"Persoana cu id {id} nu a fost gasită.");
+            return new ServiceError("Not found person");
         }
 
-        // Dacă l-a găsit, îl împachetăm în rezultat
-        return ServiceResult<WantedPersonSummaryResponse>.Ok(WantedPersonMappers.ToSummaryDto(person));
+        return WantedPersonMappers.ToDetailDto(person);
     }
 }

@@ -85,11 +85,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 
-
-// ... builder.Services.AddControllers();
-
-
-
 // ... builder.Services.AddFluentValidationAutoValidation(); ...
 
 builder.Services.AddCors(options =>
