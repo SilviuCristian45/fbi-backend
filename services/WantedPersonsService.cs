@@ -16,6 +16,16 @@ public class WantedPersonsService : IWantedPersonsService
         _context = context;
     }
 
+    public async Task< ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId, string keycloakId) {
+        try {
+            _context.SaveWantedPersons.Add(new SaveWantedPerson { UserId = keycloakId, WantedPersonId = personId } );
+            await _context.SaveChangesAsync();
+            return new SaveFavouritePerson(true);
+        } catch (Exception e) {
+            Console.WriteLine(e.Message);
+            return new ServiceError(e.Message);
+        }
+    }
     public async Task<ServiceResult<PaginatedResponse<WantedPersonSummaryResponse>>> GetAllAsync(PaginatedQueryDto paginatedQueryDto)
     {
 

@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims; // <--- Nu uita asta!
 
 using FbiApi.Models; // Asigură-te că faci using la DTO
 using FbiApi.Services;
 using FbiApi.Utils;
 using FbiApi.Mappers;
+
 
 [ApiController]
 [Route("api/[controller]")]
@@ -43,5 +45,21 @@ public class FbiWanted : ControllerBase {
         }
 
         return Ok(ApiResponse<WantedPersonDetailResponse>.Success(person.Data));
+    }
+
+    [HttpPost("{personId}")]
+    [Authorize(Roles = nameof(Role.USER))]
+    public async Task< ActionResult<ApiResponse<SaveFavouritePerson>>> saveFavouritePerson(int personId) {
+         var keycloakId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
+         if (string.IsNullOrEmpty(keycloakId))
+         {
+            return Unauthorized(ApiResponse<SaveFavouritePerson>.Error("Utilizatorul nu a putut fi identificat."));
+         }
+         var result = await _service.SavePersonToFavourite(personId, keycloakId);
+         if (result.Success == false)
+         {
+            return NotFound(ApiResponse<SaveFavouritePerson>.Error(result.ErrorMessage));
+         }
+         return Ok(ApiResponse<SaveFavouritePerson>.Success(result.Data));
     }
 }

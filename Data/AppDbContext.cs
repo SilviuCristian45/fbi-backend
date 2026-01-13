@@ -21,4 +21,6 @@ public class AppDbContext : DbContext
     public DbSet<WantedFile> WantedFiles {get; set;}
 
     public DbSet<WantedAlias> WantedAliases { get; set; }
+
+    public DbSet<SaveWantedPerson> SaveWantedPersons {get; set;} 
 }

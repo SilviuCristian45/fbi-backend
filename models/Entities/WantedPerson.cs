@@ -56,4 +56,6 @@ public class WantedPerson
     public List<WantedAlias> Aliases { get; set; } = new();
     public List<WantedSubject> Subjects { get; set; } = new(); // Infracțiunile (ex: "Cyber's Most Wanted")
     public List<WantedFile> Files { get; set; } = new(); // PDF-urile asociate
+
+    public List<SaveWantedPerson> SaveWantedPersons {get; set;} = new();
 }
