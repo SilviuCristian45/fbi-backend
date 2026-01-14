@@ -13,7 +13,6 @@ using FbiApi.Mappers;
 public class FbiWanted : ControllerBase {
     private readonly IWantedPersonsService _service;
 
-    // Injectăm Service-ul, NU DbContext-ul
     public FbiWanted(IWantedPersonsService service)
     {
         _service = service;
@@ -34,7 +33,7 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpGet("{id}")]
-     [Authorize(Roles = nameof(Role.USER))]
+    [Authorize(Roles = nameof(Role.USER))]
     public async Task< ActionResult<ApiResponse<WantedPersonDetailResponse>>> GetById(int id)
     {
         var person = await _service.GetByIdAsync(id);
@@ -58,8 +57,27 @@ public class FbiWanted : ControllerBase {
          var result = await _service.SavePersonToFavourite(personId, keycloakId, save);
          if (result.Success == false)
          {
-            return NotFound(ApiResponse<SaveFavouritePerson>.Error(result.ErrorMessage));
+            return BadRequest(ApiResponse<SaveFavouritePerson>.Error(result.ErrorMessage));
          }
          return Ok(ApiResponse<SaveFavouritePerson>.Success(result.Data));
+    }
+
+    [HttpGet("saved")]
+    [Authorize(Roles = nameof(Role.USER))]
+    public async 
+    Task<ActionResult<ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>>> getSavedWantedPersons(
+        [FromQuery] PaginatedQueryDto paginatedQueryDto
+    ) {
+        var keycloakId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
+        if (string.IsNullOrEmpty(keycloakId))
+        {
+        return Unauthorized(ApiResponse<SaveFavouritePerson>.Error("Utilizatorul nu a putut fi identificat."));
+        }
+        var result = await _service.GetAllSavedAsync(paginatedQueryDto, keycloakId);
+        if (result.Success == false) 
+        {
+            return BadRequest(ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>.Error(result.ErrorMessage));
+        }
+        return Ok(ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>.Success(result.Data));
     }
 }

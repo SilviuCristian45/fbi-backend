@@ -32,6 +32,47 @@ public class WantedPersonsService : IWantedPersonsService
             return new ServiceError(e.Message);
         }
     }
+
+     public async Task<ServiceResult<PaginatedResponse<WantedPersonSummaryResponse>>> GetAllSavedAsync(PaginatedQueryDto paginatedQueryDto,
+     string keycloakId
+     )
+    {
+
+        string search = paginatedQueryDto.Search;
+        int pageSize = paginatedQueryDto.PageSize;
+        int page = paginatedQueryDto.PageNumber;
+
+        var query = _context.WantedPersons
+            .Include(p => p.Images)
+            .Include(p => p.SaveWantedPersons)
+            .Where(p => p.SaveWantedPersons != null && p.SaveWantedPersons.Select(q => q.UserId).Contains(keycloakId))
+            .AsNoTracking() // Optimizare: Read-Only e mai rapid
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            search = search.ToLower();
+            query = query.Where(p => 
+                (p.Title != null && p.Title.ToLower().Contains(search)) || 
+                (p.Description != null && p.Description.ToLower().Contains(search))
+            );
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(p => p.PublicationDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(); 
+
+        var dtos = items.Select(p => p.ToSummaryDto()).ToList();
+
+        return new PaginatedResponse<WantedPersonSummaryResponse>(totalItems, dtos);
+    }
+
+
+
     public async Task<ServiceResult<PaginatedResponse<WantedPersonSummaryResponse>>> GetAllAsync(PaginatedQueryDto paginatedQueryDto)
     {
 
