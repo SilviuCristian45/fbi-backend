@@ -48,20 +48,20 @@ public class FbiWanted : ControllerBase {
 
     [HttpPost("{personId}/{save}")]
     [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
-    public async Task<ActionResult<ApiResponse<SaveFavouritePerson>>> saveFavouritePerson(int personId, bool save) {
+    public async Task<ActionResult<ApiResponse<OperationStatus>>> OperationStatus(int personId, bool save) {
          var keycloakId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
          if (string.IsNullOrEmpty(keycloakId))
          {
-            return Unauthorized(ApiResponse<SaveFavouritePerson>.Error("Utilizatorul nu a putut fi identificat."));
+            return Unauthorized(ApiResponse<OperationStatus>.Error("Utilizatorul nu a putut fi identificat."));
          }
          var username = User.FindFirstValue("preferred_username");
 
          var result = await _service.SavePersonToFavourite(personId, username, keycloakId, save);
          if (result.Success == false)
          {
-            return BadRequest(ApiResponse<SaveFavouritePerson>.Error(result.ErrorMessage));
+            return BadRequest(ApiResponse<OperationStatus>.Error(result.ErrorMessage));
          }
-         return Ok(ApiResponse<SaveFavouritePerson>.Success(result.Data));
+         return Ok(ApiResponse<OperationStatus>.Success(result.Data));
     }
 
     [HttpGet("saved")]
@@ -73,7 +73,7 @@ public class FbiWanted : ControllerBase {
         var keycloakId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
         if (string.IsNullOrEmpty(keycloakId))
         {
-        return Unauthorized(ApiResponse<SaveFavouritePerson>.Error("Utilizatorul nu a putut fi identificat."));
+        return Unauthorized(ApiResponse<OperationStatus>.Error("Utilizatorul nu a putut fi identificat."));
         }
         var result = await _service.GetAllSavedAsync(paginatedQueryDto, keycloakId);
         if (result.Success == false) 
@@ -81,5 +81,25 @@ public class FbiWanted : ControllerBase {
             return BadRequest(ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>.Error(result.ErrorMessage));
         }
         return Ok(ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>.Success(result.Data));
+    }
+
+    [HttpPost("report-location")]
+    [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
+    public async 
+    Task<ActionResult<ApiResponse<OperationStatus>>> reportLocation(
+        ReportLocationRequest reportLocationRequest
+    ) {
+        var keycloakId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
+        if (string.IsNullOrEmpty(keycloakId))
+        {
+            return Unauthorized(ApiResponse<OperationStatus>.Error("Utilizatorul nu a putut fi identificat."));
+        }
+        var username = User.FindFirstValue("preferred_username");
+        var result = await _service.reportLocation(reportLocationRequest, keycloakId, username);
+        if (result.Success == false) 
+        {
+            return BadRequest(ApiResponse<OperationStatus>.Error(result.ErrorMessage));
+        }
+        return Ok(ApiResponse<OperationStatus>.Success(result.Data));
     }
 }

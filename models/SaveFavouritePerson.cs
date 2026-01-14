@@ -1,3 +1,3 @@
-public record SaveFavouritePerson(
+public record OperationStatus(
     bool isSuccess
 );

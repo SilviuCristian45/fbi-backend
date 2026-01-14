@@ -14,13 +14,19 @@ public class WantedPersonsService : IWantedPersonsService
     private readonly AppDbContext _context;
     private readonly IHubContext<SurveilanceHub> _hubContext;
 
-    public WantedPersonsService(AppDbContext context, IHubContext<SurveilanceHub> hubContext)
+    private readonly ILogger<WantedPersonsService> _logger;
+
+    public WantedPersonsService(AppDbContext context, 
+    IHubContext<SurveilanceHub> hubContext,
+    ILogger<WantedPersonsService> logger
+    )
     {
         _hubContext = hubContext;
         _context = context;
+        _logger = logger;
     }
 
-    public async Task<ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId,string username, string keycloakId, bool save) {
+    public async Task<ServiceResult<OperationStatus>> SavePersonToFavourite(int personId,string username, string keycloakId, bool save) {
         try {
             if (save) {
                 _context.SaveWantedPersons.Add(new SaveWantedPerson { UserId = keycloakId, WantedPersonId = personId } );
@@ -32,7 +38,7 @@ public class WantedPersonsService : IWantedPersonsService
                 .ExecuteDeleteAsync();
             }
             await _context.SaveChangesAsync();
-            return new SaveFavouritePerson(true);
+            return new OperationStatus(true);
         } catch (Exception e) {
             Console.WriteLine(e.Message);
             return new ServiceError(e.Message);
@@ -130,5 +136,27 @@ public class WantedPersonsService : IWantedPersonsService
         }
 
         return WantedPersonMappers.ToDetailDto(person);
+    }
+
+    public async Task<ServiceResult<OperationStatus>> reportLocation(ReportLocationRequest reportLocationRequest, string userId, string username) {
+        
+        try {
+            var location = _context.LocationWantedPersons.Add(new LocationWantedPerson {
+                Latitude = reportLocationRequest.Lat,
+                Longitude = reportLocationRequest.Lng,
+                Description = reportLocationRequest.Details,
+                WantedPersonId = reportLocationRequest.WantedId,
+                UserId = userId,
+                Username = username,
+            });
+
+            await _context.SaveChangesAsync();
+
+            return new OperationStatus(true);
+        } catch(Exception e) {
+            _logger.LogError(e.Message);
+            return new OperationStatus(false);
+        }
+        
     }
 }

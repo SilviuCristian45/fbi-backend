@@ -58,4 +58,6 @@ public class WantedPerson
     public List<WantedFile> Files { get; set; } = new(); // PDF-urile asociate
 
     public List<SaveWantedPerson> SaveWantedPersons {get; set;} = new();
+
+    public List<LocationWantedPerson> LocationWantedPersons {get; set;} = new();
 }
