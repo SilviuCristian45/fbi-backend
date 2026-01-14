@@ -13,6 +13,8 @@ public class LocationWantedPerson
 
     public string Username {get; set;}
 
+    public DateTime ReportedAt {get; set;}
+
     public int WantedPersonId { get; set; }
     public WantedPerson WantedPerson { get; set; }
 }

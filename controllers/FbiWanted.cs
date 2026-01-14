@@ -102,4 +102,15 @@ public class FbiWanted : ControllerBase {
         }
         return Ok(ApiResponse<OperationStatus>.Success(result.Data));
     }
+
+    [HttpGet("{id}/sightings")]
+    public async Task<ActionResult<ApiResponse<List<LocationReportDto>>>> GetSightings(int id)
+    {
+        var result = await _service.GetSightings(id);
+        if (result.Success == false) 
+        {
+            return BadRequest(ApiResponse<List<LocationReportDto>>.Error(result.ErrorMessage));
+        }
+        return Ok(ApiResponse<List<LocationReportDto>>.Success(result.Data));
+    }
 }

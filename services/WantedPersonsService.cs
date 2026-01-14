@@ -148,15 +148,42 @@ public class WantedPersonsService : IWantedPersonsService
                 WantedPersonId = reportLocationRequest.WantedId,
                 UserId = userId,
                 Username = username,
+                ReportedAt = DateTime.UtcNow,
             });
 
             await _context.SaveChangesAsync();
+
+            var sightingDto = new {
+                id = location.Entity.Id,
+                lat = location.Entity.Latitude,
+                lng = location.Entity.Longitude,
+                details = location.Entity.Description,
+                reportedBy = location.Entity.Username,
+                timestamp = location.Entity.ReportedAt,
+                wantedPersonId = location.Entity.WantedPersonId
+            };
+
+            await _hubContext.Clients.All.SendAsync("ReceiveLocation", sightingDto);
+
 
             return new OperationStatus(true);
         } catch(Exception e) {
             _logger.LogError(e.Message);
             return new OperationStatus(false);
         }
-        
     }
+
+     public async Task<ServiceResult<List<LocationReportDto>>> GetSightings(int id) {
+        try {
+            var reports = await _context.LocationWantedPersons // Presupun ca ai tabela asta
+                .Where(r => r.WantedPersonId == id)
+                .OrderByDescending(r => r.ReportedAt)
+                .Select(r => new LocationReportDto(r.Id, r.Latitude, r.Longitude, r.Description, r.Username, r.ReportedAt, r.WantedPersonId))
+                .ToListAsync();
+            return reports;
+        } catch(Exception e) {
+            _logger.LogError(e.Message);
+            return new List<LocationReportDto>();
+        }
+     } 
 }
