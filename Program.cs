@@ -54,6 +54,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         
         options.Events = new JwtBearerEvents
         {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/surveillance"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
             OnTokenValidated = context =>
             {
                 // 1. Căutăm claim-ul "realm_access" (care e un JSON string)
@@ -196,7 +206,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(); // Generează interfața grafică HTML (ex: /swagger/index.html)
 }
 
-app.MapHub<NotificationsHub>("/hubs/notifications"); // Asta va fi adresa ws://localhost:port/hubs/notifications
+app.MapHub<SurveilanceHub>("/hubs/surveillance");// Asta va fi adresa ws://localhost:port/hubs/notifications
 // Adaugă linia asta:
 app.UseMiddleware<FbiApi.Utils.GlobalExceptionMiddleware>();
 app.UseStaticFiles(); // <--- Asta face folderul wwwroot public

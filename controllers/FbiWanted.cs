@@ -19,7 +19,7 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpGet]
-    [Authorize(Roles = nameof(Role.USER))]
+    [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
     public async Task<ActionResult<ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>>> GetAll(
         [FromQuery] PaginatedQueryDto paginatedQueryDto
     )
@@ -33,7 +33,7 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = nameof(Role.USER))]
+    [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
     public async Task< ActionResult<ApiResponse<WantedPersonDetailResponse>>> GetById(int id)
     {
         var person = await _service.GetByIdAsync(id);
@@ -47,14 +47,16 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpPost("{personId}/{save}")]
-    [Authorize(Roles = nameof(Role.USER))]
+    [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
     public async Task<ActionResult<ApiResponse<SaveFavouritePerson>>> saveFavouritePerson(int personId, bool save) {
          var keycloakId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
          if (string.IsNullOrEmpty(keycloakId))
          {
             return Unauthorized(ApiResponse<SaveFavouritePerson>.Error("Utilizatorul nu a putut fi identificat."));
          }
-         var result = await _service.SavePersonToFavourite(personId, keycloakId, save);
+         var username = User.FindFirstValue("preferred_username");
+
+         var result = await _service.SavePersonToFavourite(personId, username, keycloakId, save);
          if (result.Success == false)
          {
             return BadRequest(ApiResponse<SaveFavouritePerson>.Error(result.ErrorMessage));
@@ -63,7 +65,7 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpGet("saved")]
-    [Authorize(Roles = nameof(Role.USER))]
+    [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
     public async 
     Task<ActionResult<ApiResponse<PaginatedResponse<WantedPersonSummaryResponse>>>> getSavedWantedPersons(
         [FromQuery] PaginatedQueryDto paginatedQueryDto

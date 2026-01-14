@@ -6,20 +6,26 @@ using FbiApi.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using FbiApi.Utils;
 using FbiApi.Mappers;
+using FbiApi.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 public class WantedPersonsService : IWantedPersonsService
 {
     private readonly AppDbContext _context;
+    private readonly IHubContext<SurveilanceHub> _hubContext;
 
-    public WantedPersonsService(AppDbContext context)
+    public WantedPersonsService(AppDbContext context, IHubContext<SurveilanceHub> hubContext)
     {
+        _hubContext = hubContext;
         _context = context;
     }
 
-    public async Task<ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId, string keycloakId, bool save) {
+    public async Task<ServiceResult<SaveFavouritePerson>> SavePersonToFavourite(int personId,string username, string keycloakId, bool save) {
         try {
             if (save) {
                 _context.SaveWantedPersons.Add(new SaveWantedPerson { UserId = keycloakId, WantedPersonId = personId } );
+                await _hubContext.Clients.Group("Admins").SendAsync("ReceiveActivity", 
+                    $"Agentul {username} a adăugat un suspect la favoriți!");
             } else {
                 await _context.SaveWantedPersons
                 .Where(x => x.UserId == keycloakId && x.WantedPersonId == personId)
