@@ -161,7 +161,8 @@ public class WantedPersonsService : IWantedPersonsService
                 details = location.Entity.Description,
                 reportedBy = location.Entity.Username,
                 timestamp = location.Entity.ReportedAt,
-                wantedPersonId = location.Entity.WantedPersonId
+                wantedPersonId = location.Entity.WantedPersonId,
+                fileUrl = location.Entity.FileUrl,
             };
 
             await _hubContext.Clients.All.SendAsync("ReceiveLocation", sightingDto);

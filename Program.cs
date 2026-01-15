@@ -21,6 +21,17 @@ using FbiApi.Data;
 var builder = WebApplication.CreateBuilder(args);
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 500 * 1024 * 1024; 
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(x =>
+{
+    x.ValueLengthLimit = int.MaxValue;
+    x.MultipartBodyLengthLimit = int.MaxValue; // 500 MB
+});
+
 var keycloakConfig = builder.Configuration.GetSection("Keycloak");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
