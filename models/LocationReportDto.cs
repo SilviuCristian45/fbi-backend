@@ -6,5 +6,6 @@ public record LocationReportDto(
     string Details, 
     string ReportedBy, // Username-ul agentului
     DateTime Timestamp,
-    int WantedPersonId
+    int WantedPersonId,
+    string? FileUrl
 );

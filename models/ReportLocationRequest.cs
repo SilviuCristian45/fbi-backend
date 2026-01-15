@@ -15,4 +15,6 @@ public record ReportLocationRequest
 
     [MaxLength(500, ErrorMessage = "Detaliile nu pot depăși 500 de caractere")]
     public string? Details { get; init; }
+
+    public string? FileUrl {get; set;}
 }

@@ -149,6 +149,7 @@ public class WantedPersonsService : IWantedPersonsService
                 UserId = userId,
                 Username = username,
                 ReportedAt = DateTime.UtcNow,
+                FileUrl = reportLocationRequest.FileUrl,
             });
 
             await _context.SaveChangesAsync();
@@ -165,7 +166,6 @@ public class WantedPersonsService : IWantedPersonsService
 
             await _hubContext.Clients.All.SendAsync("ReceiveLocation", sightingDto);
 
-
             return new OperationStatus(true);
         } catch(Exception e) {
             _logger.LogError(e.Message);
@@ -178,7 +178,7 @@ public class WantedPersonsService : IWantedPersonsService
             var reports = await _context.LocationWantedPersons // Presupun ca ai tabela asta
                 .Where(r => r.WantedPersonId == id)
                 .OrderByDescending(r => r.ReportedAt)
-                .Select(r => new LocationReportDto(r.Id, r.Latitude, r.Longitude, r.Description, r.Username, r.ReportedAt, r.WantedPersonId))
+                .Select(r => new LocationReportDto(r.Id, r.Latitude, r.Longitude, r.Description, r.Username, r.ReportedAt, r.WantedPersonId, r.FileUrl))
                 .ToListAsync();
             return reports;
         } catch(Exception e) {

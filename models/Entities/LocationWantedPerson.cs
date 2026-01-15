@@ -15,6 +15,8 @@ public class LocationWantedPerson
 
     public DateTime ReportedAt {get; set;}
 
+    public string FileUrl { get; set; }
+
     public int WantedPersonId { get; set; }
     public WantedPerson WantedPerson { get; set; }
 }
