@@ -8,6 +8,7 @@ using FbiApi.Utils;
 using FbiApi.Mappers;
 using FbiApi.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using FbiApi.Models;
 
 public class WantedPersonsService : IWantedPersonsService
 {
@@ -187,4 +188,41 @@ public class WantedPersonsService : IWantedPersonsService
             return new List<LocationReportDto>();
         }
      } 
+
+     public async Task<ServiceResult<DownloadDossierDto>> DownloadDossier(int id) {
+        // 1. Căutăm suspectul
+        try {
+            var wanted = await _context.WantedPersons.FindAsync(id);
+            if (wanted == null) return ServiceResult<DownloadDossierDto>.Fail("not found wanted person");
+
+            // 2. Căutăm locațiile (sightings)
+            var sightings = await _context.LocationWantedPersons
+                .Where(x => x.WantedPersonId == id)
+                .OrderByDescending(x => x.ReportedAt)
+                .Take(20) // Luăm ultimele 20
+                .ToListAsync();
+
+            // 3. Pregătim datele pentru PDF
+            var pdfData = new PdfGenerator.PdfData(
+                Name: wanted.Title,
+                Description: wanted.Description,
+                ImageUrl: wanted.Images.FirstOrDefault()?.LargeUrl,
+                Sightings: wanted.LocationWantedPersons.Select(s => new PdfGenerator.PdfSighting(
+                    s.Username, s.ReportedAt, s.Description, s.Latitude, s.Longitude
+                )).ToList()
+            );
+
+            // 4. Generăm fișierul (Bytes)
+            var fileBytes = PdfGenerator.GenerateDossier(pdfData);
+            var fileName = $"CASE_FILE_{wanted.Title.Replace(" ", "_").ToUpper()}.pdf";
+
+            // 5. Returnăm ca fișier descărcabil
+            //return File(fileBytes, "application/pdf", fileName);
+            return new DownloadDossierDto(fileBytes, fileName);
+        } catch (Exception ex) {
+            _logger.LogError(ex.Message);
+            return ServiceResult<DownloadDossierDto>.Fail(ex.Message);
+        }
+       
+     }
 }

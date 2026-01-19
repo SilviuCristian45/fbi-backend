@@ -113,4 +113,15 @@ public class FbiWanted : ControllerBase {
         }
         return Ok(ApiResponse<List<LocationReportDto>>.Success(result.Data));
     }
+
+    [HttpGet("{id}/dossier")]
+    public async Task<ActionResult> DownloadDossier(int id)
+    {
+        var result = await _service.DownloadDossier(id);
+         if (result.Success == false) 
+        {
+            return BadRequest(result.ErrorMessage);
+        }
+        return File(result.Data.bytes, "application/pdf", result.Data.fileName);
+    }
 }

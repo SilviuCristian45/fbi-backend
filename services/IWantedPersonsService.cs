@@ -1,7 +1,7 @@
 using FbiApi.Models; // Pt PagedResult
 using FbiApi.Models.Entities;
 using FbiApi.Utils;
-
+using Microsoft.AspNetCore.Mvc; // <--- Asta conține metoda 'File'
 namespace FbiApi.Services;
 
 public interface IWantedPersonsService
@@ -17,5 +17,7 @@ public interface IWantedPersonsService
     Task<ServiceResult<OperationStatus>> reportLocation(ReportLocationRequest reportLocationRequest,  string userId, string username);
 
     Task<ServiceResult<List<LocationReportDto>>> GetSightings(int id);
+
+    Task<ServiceResult<DownloadDossierDto>> DownloadDossier(int id);
 
 }

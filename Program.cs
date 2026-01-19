@@ -11,6 +11,7 @@ using FluentValidation.AspNetCore;
 using Stripe;
 using Supabase;
 using System.Text.Json.Serialization; // <--- Adaugă namespace-ul
+using QuestPDF.Infrastructure;
 
 using Microsoft.AspNetCore.Mvc; // Pt ApiBehaviorOptions
 using FbiApi.Models; // Pt ApiResponse
@@ -20,6 +21,8 @@ using FbiApi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
