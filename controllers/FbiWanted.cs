@@ -129,7 +129,7 @@ public class FbiWanted : ControllerBase {
         return File(result.Data.bytes, "application/pdf", result.Data.fileName);
     }
 
-    [HttpGet("/stats")]
+    [HttpGet("stats")]
     [Authorize(Roles = $"{nameof(Role.ADMIN)}")]
     public async Task<ActionResult<DashboardStatsDto>> GenerateStats() {
         
