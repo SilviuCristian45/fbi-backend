@@ -223,6 +223,55 @@ public class WantedPersonsService : IWantedPersonsService
             _logger.LogError(ex.Message);
             return ServiceResult<DownloadDossierDto>.Fail(ex.Message);
         }
-       
      }
+
+    public async Task<ServiceResult<DashboardStatsDto>> GenerateStats() {
+        try {
+            var totalSuspects = await _context.WantedPersons.CountAsync();
+            var totalSightings = await _context.LocationWantedPersons.CountAsync();
+
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+            var activityData = await _context.LocationWantedPersons
+                .Where(x => x.ReportedAt >= sevenDaysAgo)
+                .GroupBy(x => x.ReportedAt.Date)
+                .Select(g => new 
+                {
+                    Date = g.Key,
+                    Count = g.Count()
+                })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var formattedActivity = activityData.Select(x => new ChartDataPoint 
+            {
+                Date = x.Date.ToString("dd MMM"),
+                Count = x.Count
+            }).ToList();
+
+            var topSuspects = await _context.WantedPersons
+                .Select(p => new TopSuspectDto
+                {
+                    Name = p.Title,
+                    SightingsCount = _context.LocationWantedPersons.Count(l => l.WantedPersonId == p.Id)
+                })
+                .OrderByDescending(x => x.SightingsCount)
+                .Take(5)
+                .ToListAsync();
+
+            // 4. Construim răspunsul final
+            var stats = new DashboardStatsDto
+            {
+                TotalSuspects = totalSuspects,
+                TotalSightings = totalSightings,
+                ActivityLast7Days = formattedActivity,
+                TopSuspects = topSuspects
+            };
+
+            return ServiceResult<DashboardStatsDto>.Ok(stats);
+        } catch(Exception exception) {
+            _logger.LogError(exception.Message);
+            return ServiceResult<DashboardStatsDto>.Fail(exception.Message);
+        }
+    } 
 }

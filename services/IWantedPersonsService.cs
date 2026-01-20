@@ -20,4 +20,6 @@ public interface IWantedPersonsService
 
     Task<ServiceResult<DownloadDossierDto>> DownloadDossier(int id);
 
+    Task<ServiceResult<DashboardStatsDto>> GenerateStats();
+
 }

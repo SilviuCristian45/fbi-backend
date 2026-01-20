@@ -104,6 +104,8 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpGet("{id}/sightings")]
+    
+    [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
     public async Task<ActionResult<ApiResponse<List<LocationReportDto>>>> GetSightings(int id)
     {
         var result = await _service.GetSightings(id);
@@ -115,6 +117,8 @@ public class FbiWanted : ControllerBase {
     }
 
     [HttpGet("{id}/dossier")]
+    
+    [Authorize(Roles = $"{nameof(Role.USER)},{nameof(Role.ADMIN)}")]
     public async Task<ActionResult> DownloadDossier(int id)
     {
         var result = await _service.DownloadDossier(id);
@@ -124,4 +128,18 @@ public class FbiWanted : ControllerBase {
         }
         return File(result.Data.bytes, "application/pdf", result.Data.fileName);
     }
+
+    [HttpGet("/stats")]
+    [Authorize(Roles = $"{nameof(Role.ADMIN)}")]
+    public async Task<ActionResult<DashboardStatsDto>> GenerateStats() {
+        
+        var result = await _service.GenerateStats();
+         if (result.Success == false) 
+        {
+            return BadRequest(ApiResponse<DashboardStatsDto>.Error(result.ErrorMessage));
+        }
+        return Ok(ApiResponse<DashboardStatsDto>.Success(result.Data));
+    }
+
+
 }
