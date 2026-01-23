@@ -155,6 +155,7 @@ builder.Services.AddSingleton(supabaseClient);
 builder.Services.AddHostedService<FbiScraperService>();
 
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IFaceRecognitionService, FaceRecognitionService>();
 builder.Services.AddHttpClient(); // <--- CRITIC
 
 builder.Services.AddFluentValidationAutoValidation(); // Activează validarea automată înainte de Controller

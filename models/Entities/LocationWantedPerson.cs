@@ -19,4 +19,6 @@ public class LocationWantedPerson
 
     public int WantedPersonId { get; set; }
     public WantedPerson WantedPerson { get; set; }
+
+    public List<PersonMatchResults> personMatchResults = new();
 }

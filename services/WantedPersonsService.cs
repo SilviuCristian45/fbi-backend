@@ -17,14 +17,19 @@ public class WantedPersonsService : IWantedPersonsService
 
     private readonly ILogger<WantedPersonsService> _logger;
 
+    private readonly IFaceRecognitionService _faceRecognitionService;
+
     public WantedPersonsService(AppDbContext context, 
     IHubContext<SurveilanceHub> hubContext,
-    ILogger<WantedPersonsService> logger
+    ILogger<WantedPersonsService> logger,
+    IFaceRecognitionService faceRecognitionService
     )
     {
         _hubContext = hubContext;
         _context = context;
         _logger = logger;
+        _faceRecognitionService = faceRecognitionService;
+
     }
 
     public async Task<ServiceResult<OperationStatus>> SavePersonToFavourite(int personId,string username, string keycloakId, bool save) {
@@ -167,6 +172,23 @@ public class WantedPersonsService : IWantedPersonsService
             };
 
             await _hubContext.Clients.All.SendAsync("ReceiveLocation", sightingDto);
+
+            ServiceResult<CheckImageFaceRecognitionResponse> result = await _faceRecognitionService.CheckImageFaceRecognitionMatch(reportLocationRequest.FileUrl);
+
+            if (result.Success == false) {
+                _logger.LogWarning("error when checking face recognition in system");
+                _logger.LogError(result.ErrorMessage);
+            } else {
+                foreach(var person in result.Data.Matches) {
+                    await _context.PersonMatchResults.AddAsync(new PersonMatchResults() {
+                        ImageUrl = person.Url,
+                        Confidence = person.Confidence,
+                        LocationWantedPersonId = reportLocationRequest.WantedId
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
 
             return new OperationStatus(true);
         } catch(Exception e) {

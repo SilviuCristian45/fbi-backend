@@ -25,4 +25,6 @@ public class AppDbContext : DbContext
     public DbSet<SaveWantedPerson> SaveWantedPersons {get; set;} 
 
     public DbSet<LocationWantedPerson> LocationWantedPersons {get; set;}
+
+    public DbSet<PersonMatchResults> PersonMatchResults {get; set;}
 }
