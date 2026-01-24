@@ -2,16 +2,15 @@ using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
 
-    // 1. Răspunsul Rădăcină (Containerul principal)
-    public record GetAllReportsResponse(
-        [property: JsonPropertyName("reports")] List<ReportDto> Reports
-    );
-
     // 2. Raportul individual (ce vede agentul în listă)
     public record ReportDto(
         [property: JsonPropertyName("id")] int Id,       // Sau Guid/string, depinde ce ai în DB
         [property: JsonPropertyName("name")] string Name, // Titlul raportului
         [property: JsonPropertyName("url")] string Url,   // Poza încărcată de agent
+        [property: JsonPropertyName("description")] string Description, 
+        [property: JsonPropertyName("latitude")] decimal Lat, 
+        [property: JsonPropertyName("longitude")] decimal Lon, 
+        [property: JsonPropertyName("wantedId")] int WantedPersonId,
         [property: JsonPropertyName("matches")] List<MatchItemDto> Matches // Lista de suspecți găsiți
     );
 

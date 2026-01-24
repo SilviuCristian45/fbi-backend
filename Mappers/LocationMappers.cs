@@ -12,6 +12,10 @@ public static class LocationMappers
             Id: person.Id,
             Name: person.WantedPerson.Title,
             Url: person.FileUrl,
+            Description: person.Description,
+            Lat: person.Latitude,
+            Lon: person.Longitude,
+            WantedPersonId: person.WantedPersonId,
             Matches: person.personMatchResults.Select(p => new MatchItemDto(p.ImageUrl, p.Confidence)).ToList()
         );
     }
