@@ -10,7 +10,7 @@ public static class LocationMappers
     {
         return new ReportDto(
             Id: person.Id,
-            Name: "ceva",
+            Name: person.WantedPerson.Title,
             Url: person.FileUrl,
             Matches: person.personMatchResults.Select(p => new MatchItemDto(p.ImageUrl, p.Confidence)).ToList()
         );

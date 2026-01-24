@@ -306,6 +306,7 @@ public class WantedPersonsService : IWantedPersonsService
         try {   
             var query = _context.LocationWantedPersons
             .Include(p => p.personMatchResults)
+            .Include(p => p.WantedPerson)
             .AsNoTracking() // Optimizare: Read-Only e mai rapid
             .AsQueryable();
 
