@@ -183,7 +183,7 @@ public class WantedPersonsService : IWantedPersonsService
                     await _context.PersonMatchResults.AddAsync(new PersonMatchResults() {
                         ImageUrl = person.Url,
                         Confidence = person.Confidence,
-                        LocationWantedPersonId = reportLocationRequest.WantedId
+                        LocationWantedPersonId = location.Entity.Id
                     });
                 }
             }
@@ -296,4 +296,41 @@ public class WantedPersonsService : IWantedPersonsService
             return ServiceResult<DashboardStatsDto>.Fail(exception.Message);
         }
     } 
+
+    public async Task<ServiceResult<PaginatedResponse<ReportDto>>> GetAllReportsAsync(
+        PaginatedQueryDto paginatedQueryDto
+    ) {
+        string search = paginatedQueryDto.Search;
+        int pageSize = paginatedQueryDto.PageSize;
+        int page = paginatedQueryDto.PageNumber;
+        try {   
+            var query = _context.LocationWantedPersons
+            .Include(p => p.personMatchResults)
+            .AsNoTracking() // Optimizare: Read-Only e mai rapid
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            search = search.ToLower();
+            query = query.Where(p => 
+                (p.Description != null && p.Description.ToLower().Contains(search)) || 
+                (p.Username != null && p.Username.ToLower().Contains(search))
+            );
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(p => p.ReportedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(); 
+
+        var dtos = items.Select(p => p.toReportDto()).ToList();
+
+        return new PaginatedResponse<ReportDto>(totalItems, dtos);
+        } catch (Exception ex) {
+            return ServiceResult<PaginatedResponse<ReportDto>>.Fail(ex.Message);
+        }
+    }
 }

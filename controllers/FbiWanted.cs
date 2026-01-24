@@ -141,5 +141,17 @@ public class FbiWanted : ControllerBase {
         return Ok(ApiResponse<DashboardStatsDto>.Success(result.Data));
     }
 
+    [HttpGet("reports")]
+    [Authorize(Roles = $"{nameof(Role.ADMIN)}")]
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<ReportDto>>>> getAllReports(
+        [FromQuery] PaginatedQueryDto paginatedQueryDto
+    ) {
+        var result = await _service.GetAllReportsAsync(paginatedQueryDto);
+        if (result.Success == false) 
+        {
+            return BadRequest(ApiResponse<PaginatedResponse<ReportDto>>.Error(result.ErrorMessage));
+        }
+        return Ok(ApiResponse<PaginatedResponse<ReportDto>>.Success(result.Data));
+    }
 
 }

@@ -22,4 +22,7 @@ public interface IWantedPersonsService
 
     Task<ServiceResult<DashboardStatsDto>> GenerateStats();
 
+    Task<ServiceResult<PaginatedResponse<ReportDto>>> GetAllReportsAsync(
+        PaginatedQueryDto paginatedQueryDto
+    );
 }
