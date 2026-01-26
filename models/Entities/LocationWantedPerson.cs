@@ -21,4 +21,6 @@ public class LocationWantedPerson
     public WantedPerson WantedPerson { get; set; }
 
     public List<PersonMatchResults> personMatchResults { get; set; } = new();
+
+    public ReportStatus Status { get; set; } = ReportStatus.Pending;
 }

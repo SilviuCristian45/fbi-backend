@@ -9,6 +9,8 @@ using FbiApi.Mappers;
 using FbiApi.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using FbiApi.Models;
+using MassTransit;
+using FbiApi.Contracts; // Pt mesaj
 
 public class WantedPersonsService : IWantedPersonsService
 {
@@ -19,16 +21,26 @@ public class WantedPersonsService : IWantedPersonsService
 
     private readonly IFaceRecognitionService _faceRecognitionService;
 
-    public WantedPersonsService(AppDbContext context, 
-    IHubContext<SurveilanceHub> hubContext,
-    ILogger<WantedPersonsService> logger,
-    IFaceRecognitionService faceRecognitionService
+    private readonly ISendEndpointProvider _sendEndpointProvider;
+
+    private readonly IConfiguration _configuration;
+
+
+    public WantedPersonsService(
+        AppDbContext context, 
+        IHubContext<SurveilanceHub> hubContext,
+        ILogger<WantedPersonsService> logger,
+        IFaceRecognitionService faceRecognitionService,
+        ISendEndpointProvider sendEndpointProvider,
+        IConfiguration configuration
     )
     {
+        _configuration = configuration;
         _hubContext = hubContext;
         _context = context;
         _logger = logger;
         _faceRecognitionService = faceRecognitionService;
+        _sendEndpointProvider = sendEndpointProvider;
 
     }
 
@@ -173,22 +185,38 @@ public class WantedPersonsService : IWantedPersonsService
 
             await _hubContext.Clients.All.SendAsync("ReceiveLocation", sightingDto);
 
-            ServiceResult<CheckImageFaceRecognitionResponse> result = await _faceRecognitionService.CheckImageFaceRecognitionMatch(reportLocationRequest.FileUrl);
+            // ServiceResult<CheckImageFaceRecognitionResponse> result = await _faceRecognitionService.CheckImageFaceRecognitionMatch(reportLocationRequest.FileUrl);
 
-            if (result.Success == false) {
-                _logger.LogWarning("error when checking face recognition in system");
-                _logger.LogError(result.ErrorMessage);
-            } else {
-                foreach(var person in result.Data.Matches) {
-                    await _context.PersonMatchResults.AddAsync(new PersonMatchResults() {
-                        ImageUrl = person.Url,
-                        Confidence = person.Confidence,
-                        LocationWantedPersonId = location.Entity.Id
-                    });
-                }
-            }
+            // if (result.Success == false) {
+            //     _logger.LogWarning("error when checking face recognition in system");
+            //     _logger.LogError(result.ErrorMessage);
+            // } else {
+            //     foreach(var person in result.Data.Matches) {
+            //         await _context.PersonMatchResults.AddAsync(new PersonMatchResults() {
+            //             ImageUrl = person.Url,
+            //             Confidence = person.Confidence,
+            //             LocationWantedPersonId = location.Entity.Id
+            //         });
+            //     }
+            // }
 
-            await _context.SaveChangesAsync();
+            // await _publishEndpoint.Publish(new AnalyzeFaceMessage
+            // {
+            //     answers = result.Data.Matches.Select(it -> new AnalyzeFaceMessageResponse() {
+
+            //     })
+            // });
+
+            // await _context.SaveChangesAsync();
+
+            var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri(_configuration["RabbitMq:Queue"]));
+    
+            // Trimite comanda
+            await endpoint.Send(new AnalyzeFaceCommand { 
+                ReportId = location.Entity.Id, 
+                ImageUrl = reportLocationRequest.FileUrl 
+            });
+
 
             return new OperationStatus(true);
         } catch(Exception e) {

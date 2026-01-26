@@ -12,12 +12,14 @@ using Stripe;
 using Supabase;
 using System.Text.Json.Serialization; // <--- Adaugă namespace-ul
 using QuestPDF.Infrastructure;
+using MassTransit; // Nu uita using-ul
 
 using Microsoft.AspNetCore.Mvc; // Pt ApiBehaviorOptions
 using FbiApi.Models; // Pt ApiResponse
 using FbiApi.Hubs;
 using FbiApi.Services;
 using FbiApi.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -36,6 +38,22 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(x =>
 });
 
 var keycloakConfig = builder.Configuration.GetSection("Keycloak");
+
+var rabbitMqConfig = builder.Configuration.GetSection("RabbitMq");
+
+builder.Services.AddMassTransit(x =>
+{
+    // Aici îi spunem să folosească RabbitMQ
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        // Setările de conectare (default din docker run)
+        cfg.Host(rabbitMqConfig["Url"], "/", h =>
+        {
+            h.Username(rabbitMqConfig["Username"]);
+            h.Password(rabbitMqConfig["Password"]);
+        });
+    });
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
