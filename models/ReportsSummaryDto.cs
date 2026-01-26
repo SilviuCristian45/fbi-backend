@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using FbiApi.Models;
 
 
     // 2. Raportul individual (ce vede agentul în listă)
@@ -11,7 +12,8 @@ using System.Collections.Generic;
         [property: JsonPropertyName("latitude")] decimal Lat, 
         [property: JsonPropertyName("longitude")] decimal Lon, 
         [property: JsonPropertyName("wantedId")] int WantedPersonId,
-        [property: JsonPropertyName("matches")] List<MatchItemDto> Matches // Lista de suspecți găsiți
+        [property: JsonPropertyName("matches")] List<MatchItemDto> Matches,// Lista de suspecți găsiți
+        [property: JsonPropertyName("status")] ReportStatus Status
     );
 
     // 3. Match-ul individual (rezultatul de la AI)

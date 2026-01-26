@@ -13,6 +13,7 @@ using Supabase;
 using System.Text.Json.Serialization; // <--- Adaugă namespace-ul
 using QuestPDF.Infrastructure;
 using MassTransit; // Nu uita using-ul
+using FbiApi.Consumers;
 
 using Microsoft.AspNetCore.Mvc; // Pt ApiBehaviorOptions
 using FbiApi.Models; // Pt ApiResponse
@@ -38,19 +39,31 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(x =>
 });
 
 var keycloakConfig = builder.Configuration.GetSection("Keycloak");
-
 var rabbitMqConfig = builder.Configuration.GetSection("RabbitMq");
 
 builder.Services.AddMassTransit(x =>
 {
+    // 👇 1. AICI E LIPSA: Trebuie să înregistrezi consumatorul în container
+    x.AddConsumer<AnalysisFinishedConsumer>();
+
     // Aici îi spunem să folosească RabbitMQ
     x.UsingRabbitMq((context, cfg) =>
     {
-        // Setările de conectare (default din docker run)
+        // Setările de conectare
         cfg.Host(rabbitMqConfig["Url"], "/", h =>
         {
             h.Username(rabbitMqConfig["Username"]);
             h.Password(rabbitMqConfig["Password"]);
+        });
+
+        // Endpoint pentru primire (ascultare)
+        cfg.ReceiveEndpoint("analysis-finished-queue", e =>
+        {
+            // Important: Spunem că mesajul vine ca JSON simplu
+            e.UseRawJsonSerializer(); 
+            
+            // 👇 2. Aici doar legăm consumatorul (deja înregistrat sus) de coadă
+            e.ConfigureConsumer<AnalysisFinishedConsumer>(context);
         });
     });
 });

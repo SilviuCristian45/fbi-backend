@@ -16,6 +16,7 @@ public static class LocationMappers
             Lat: person.Latitude,
             Lon: person.Longitude,
             WantedPersonId: person.WantedPersonId,
+            Status: person.Status,
             Matches: person.personMatchResults.Select(p => new MatchItemDto(p.ImageUrl, p.Confidence)).ToList()
         );
     }
