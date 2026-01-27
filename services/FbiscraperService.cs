@@ -51,7 +51,7 @@ private async Task FetchAndSaveFbiData(CancellationToken stoppingToken)
             client.DefaultRequestHeaders.Add("User-Agent", "MyDemoApp/1.0 (contact@example.com)");
 
             int page = 1;
-            bool hasMoreData = false;
+            bool hasMoreData = true;
 
             // 🔄 Începem bucla de paginare
             while (hasMoreData && !stoppingToken.IsCancellationRequested)
