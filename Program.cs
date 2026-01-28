@@ -50,14 +50,14 @@ builder.Services.AddMassTransit(x =>
     x.UsingRabbitMq((context, cfg) =>
     {
         // Setările de conectare
-        cfg.Host(rabbitMqConfig["Url"], "/", h =>
+        cfg.Host(rabbitMqConfig["Host"], "/", h =>
         {
             h.Username(rabbitMqConfig["Username"]);
             h.Password(rabbitMqConfig["Password"]);
         });
 
         // Endpoint pentru primire (ascultare)
-        cfg.ReceiveEndpoint("analysis-finished-queue", e =>
+        cfg.ReceiveEndpoint(rabbitMqConfig["ReceiveQueue"], e =>
         {
             // Important: Spunem că mesajul vine ca JSON simplu
             e.UseRawJsonSerializer(); 
@@ -244,13 +244,17 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All
+});
 
 // De obicei Swagger e activat doar în Development (ca să nu expui API-ul public)
-if (app.Environment.IsDevelopment())
-{
+// if (app.Environment.IsDevelopment())
+// {
     app.UseSwagger();   // Generează fișierul .json (ex: /swagger/v1/swagger.json)
     app.UseSwaggerUI(); // Generează interfața grafică HTML (ex: /swagger/index.html)
-}
+// }
 
 app.MapHub<SurveilanceHub>("/hubs/surveillance");// Asta va fi adresa ws://localhost:port/hubs/notifications
 // Adaugă linia asta:
@@ -277,7 +281,7 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseCors("AllowAll");
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.MapControllers();
 
 app.UseAuthentication();
