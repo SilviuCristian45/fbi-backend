@@ -209,7 +209,9 @@ public class WantedPersonsService : IWantedPersonsService
 
             // await _context.SaveChangesAsync();
 
-            var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri(_configuration["RabbitMq:Queue"]));
+            var queueName = _configuration["RabbitMq:Queue"];
+            var uri = queueName.StartsWith("queue:") ? new Uri($"{queueName}") : new Uri($"queue:{queueName}");
+            var endpoint = await _sendEndpointProvider.GetSendEndpoint(uri);
     
             // Trimite comanda
             await endpoint.Send(new AnalyzeFaceCommand { 
